@@ -1,0 +1,102 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CD Riudoms · Benjamí S10 · Grup 15</title>
+<style>
+:root{--y:#FFD21F;--k:#141414;--bg:#fffbea;--w:#1f9d55;--d:#e0a800;--l:#d64545}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--k)}
+header{background:var(--y);padding:12px 16px;display:flex;gap:12px;align-items:center;border-bottom:4px solid var(--k)}
+header img,header svg{width:52px;height:60px;object-fit:contain}header img{mix-blend-mode:multiply}h1{font-size:18px;margin:0}header small{display:block;font-weight:500;font-size:12px}
+nav{display:flex;overflow-x:auto;background:var(--k);position:sticky;top:0;z-index:5}
+nav button{flex:1;padding:12px 14px;background:none;border:0;color:#fff;font:600 14px system-ui;white-space:nowrap;border-bottom:3px solid transparent}
+nav button.on{color:var(--y);border-color:var(--y)}
+main{max-width:900px;margin:auto;padding:14px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 1px 4px #0002}
+h2{font-size:16px;margin:0 0 10px}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--y);border-radius:10px;padding:10px;text-align:center}.kpi b{display:block;font-size:24px}.kpi span{font-size:12px}
+table{width:100%;border-collapse:collapse}th,td{padding:6px 4px;text-align:center;font-size:13px}td:nth-child(2),th:nth-child(2){text-align:left}
+th{border-bottom:2px solid var(--k)}tr.me{background:var(--y);font-weight:700}
+.row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eee}.row.mine{background:#fff3b0;padding:8px 6px;border-radius:6px}
+.t{flex:1}.r{text-align:right}.row small{color:#555;text-align:center;min-width:90px}
+.chip{display:inline-block;min-width:26px;text-align:center;padding:3px 6px;margin-right:4px;border-radius:6px;color:#fff;font-weight:700;font-size:13px}
+.G{background:var(--w)}.E{background:var(--d)}.P{background:var(--l)}
+.bar{background:#eee;height:8px;border-radius:4px;flex:1}.bar i{display:block;height:100%;border-radius:4px}.f{background:var(--w)}.c{background:var(--l)}.y{background:var(--y)}
+select{width:100%;padding:10px;font-size:15px;border-radius:8px;border:2px solid var(--k);background:#fff}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.hd{text-align:center;font-size:11px;font-weight:700}
+.day{min-height:56px;border-radius:6px;background:#f6f1d8;padding:3px;overflow:hidden}.day b{display:block;font-size:11px}.day span{display:block;font-weight:700;font-size:11px}.day em{display:block;font-style:normal;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day.G,.day.P{color:#fff}.day.next{background:var(--y)}.day.ret{background:#ccc}.day.nx{outline:3px solid var(--k)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.mh button{font-size:20px;border:0;background:var(--y);border-radius:8px;padding:6px 14px}.tag{background:var(--k);color:var(--y);font-size:11px;padding:2px 6px;border-radius:5px;margin-left:4px}
+a{color:#7a5b00;font-weight:600}footer{text-align:center;font-size:12px;color:#666;padding:10px}
+</style></head><body>
+<header><img src="escudo.png" alt="Escudo" onerror="this.outerHTML='<svg viewBox=&quot;0 0 48 48&quot;><path d=&quot;M6 4h36v22c0 10-9 16-18 20C15 42 6 36 6 26z&quot; fill=&quot;#141414&quot;/><text x=&quot;24&quot; y=&quot;28&quot; text-anchor=&quot;middle&quot; font-size=&quot;15&quot; font-weight=&quot;700&quot; fill=&quot;#FFD21F&quot;>CDR</text></svg>'">
+<div><h1>CD Riudoms</h1><small>Benjamí S10 · Segona Divisió · Grup 15 · 2026-27</small></div></header>
+<nav id="nav"></nav><main id="app">Cargando…</main><footer id="foot"></footer>
+<script>
+const TABS=['Resumen','Clasificación','Resultados','Estadísticas','Goleadores','Calendario'];
+let M=[],TAB=0,J=1,CM=null,A={},AL=0;
+const nm=s=>s.replace(/,/g,'').replace(/\s+/g,' ').trim(),me=n=>/RIUDOMS/.test(n),S=a=>a.reduce((s,x)=>s+x,0);
+const f1=x=>(Math.round(x*10)/10).toString().replace('.',',');
+const when=m=>m.t?new Date(m.t).toLocaleString('es',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}):m.f+' · hora por confirmar';
+const bar=(v,mx,c)=>`<div class=bar><i class=${c} style="width:${mx?v/mx*100:0}%"></i></div>`;
+function parse(d){M=Object.values(d.partidos).flat().map(m=>({j:+m.JORNADA,h:nm(m.NOMBRE_CASA),a:nm(m.NOMBRE_FUERA),gh:+m.GOLES_CASA,ga:+m.GOLES_FUERA,pl:m.ESTADO==='1'&&m.GOLES_CASA!=null&&m.GOLES_CASA!=='',t:m.COMIENZO1,f:m.FECHA_JORNADA,c:m.CAMPO,lat:m.LATITUD,lon:m.LONGITUD,ret:!!(m.RETIRADO_CASA||m.RETIRADO_FUERA)})).map(m=>{const[d,o,y]=m.f.split('/'),jd=new Date(+y,o-1,+d),dt=m.t?new Date(m.t):jd;return{...m,dt,post:!!m.t&&Math.abs(dt-jd)>4*864e5}});
+ J=Math.max(1,...M.filter(m=>m.pl).map(m=>m.j))}
+function table(){const T={};M.forEach(m=>[m.h,m.a].forEach(n=>T[n]??={n,pj:0,g:0,e:0,p:0,gf:0,gc:0}));
+ M.filter(m=>m.pl).forEach(m=>[[m.h,m.gh,m.ga],[m.a,m.ga,m.gh]].forEach(([n,f,c])=>{const t=T[n];t.pj++;t.gf+=f;t.gc+=c;f>c?t.g++:f<c?t.p++:t.e++}));
+ return Object.values(T).map(t=>({...t,dg:t.gf-t.gc,pts:t.g*3+t.e})).sort((a,b)=>b.pts-a.pts||b.dg-a.dg||b.gf-a.gf)}
+function mine(){return M.filter(m=>me(m.h)||me(m.a)).map(m=>{const home=me(m.h),gf=home?m.gh:m.ga,gc=home?m.ga:m.gh;return{...m,home,rv:home?m.a:m.h,loc:home?'Casa':'Fuera',gf,gc,r:!m.pl?'':gf>gc?'G':gf<gc?'P':'E'}}).sort((a,b)=>a.dt-b.dt||a.j-b.j)}
+const nextM=my=>{const t=new Date();t.setHours(0,0,0,0);return my.find(x=>!x.pl&&!x.ret&&x.dt>=t)},hh=x=>x.t?x.dt.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}):'?',dias=x=>{const t=new Date();t.setHours(0,0,0,0);const n=Math.round((x.dt-t)/864e5);return n<=0?'¡hoy!':n==1?'mañana':'en '+n+' días'};
+const mrow=x=>`<div class=row><span class="chip ${x.r}">${x.r}</span><span class=t>J${x.j} · ${x.loc} · ${x.rv}</span><b>${x.gf} - ${x.gc}</b></div>`;
+function vResumen(){const T=table(),pos=T.findIndex(t=>me(t.n))+1,t=T[pos-1]||{},my=mine(),pl=my.filter(x=>x.pl),nx=nextM(my),nn=my.filter(x=>!x.pl&&!x.ret&&x.dt>(nx?nx.dt:0)).slice(0,2);
+ return `<div class=kpis>${[[pos+'º','Posición'],[t.pts,'Puntos'],[t.pj,'Jugados'],[t.gf,'Goles a favor'],[t.gc,'Goles en contra'],[(t.dg>0?'+':'')+t.dg,'Diferencia']].map(([a,b])=>`<div class=kpi><b>${a}</b><span>${b}</span></div>`).join('')}</div>
+<div class=card><h2>⚽ Próximo partido</h2>${nx?`<b>${nx.home?'Riudoms':nx.rv} vs ${nx.home?nx.rv:'Riudoms'}</b> (J${nx.j})${nx.post?'<span class=tag>APLAZADO</span>':''}<br>${when(nx)} · <b>${dias(nx)}</b><br>${nx.c}<br><a href="https://www.google.com/maps?q=${nx.lat},${nx.lon}" target=_blank>📍 Cómo llegar</a>${nn.length?'<hr>Después:'+nn.map(x=>`<br>${when(x)} · ${x.loc} · ${x.rv}`).join(''):''}`:'No hay más partidos programados'}</div>
+<div class=card><h2>Racha</h2>${pl.slice(-6).map(x=>`<span class="chip ${x.r}">${x.r}</span>`).join('')||'—'}</div>
+<div class=card><h2>Últimos resultados</h2>${pl.slice().reverse().map(mrow).join('')||'—'}</div>`}
+function vClas(){return `<div class=card style="overflow-x:auto"><table><tr><th>#<th>Equipo<th>PJ<th>G<th>E<th>P<th>GF<th>GC<th>DG<th>Pts</tr>${table().map((t,i)=>`<tr class="${me(t.n)?'me':''}"><td>${i+1}<td>${t.n}<td>${t.pj}<td>${t.g}<td>${t.e}<td>${t.p}<td>${t.gf}<td>${t.gc}<td>${t.dg}<td><b>${t.pts}</b></tr>`).join('')}</table></div>`}
+function vRes(){const js=[...new Set(M.map(m=>m.j))].sort((a,b)=>a-b);
+ return `<select onchange="J=+this.value;render()">${js.map(j=>`<option value=${j} ${j==J?'selected':''}>Jornada ${j}</option>`).join('')}</select><div class=card style="margin-top:10px">${M.filter(m=>m.j==J).map(m=>`<div class="row ${me(m.h)||me(m.a)?'mine':''}"><span class=t>${m.h}</span>${m.pl?`<b>${m.gh} - ${m.ga}</b>`:`<small>${m.ret?'Retirado':when(m)}</small>`}<span class="t r">${m.a}</span></div>`).join('')}</div>`}
+function vStats(){const my=mine(),pl=my.filter(x=>x.pl),T=table(),n=pl.length;if(!n)return'<div class=card>Aún no hay partidos jugados</div>';
+ const gf=S(pl.map(x=>x.gf)),gc=S(pl.map(x=>x.gc)),w=pl.filter(x=>x.r=='G').length,pts=S(pl.map(x=>x.r=='G'?3:x.r=='E'?1:0)),tot=my.filter(x=>!x.ret).length,mx=Math.max(...pl.map(x=>Math.max(x.gf,x.gc))),lg=S(T.map(t=>t.gf))/S(T.map(t=>t.pj));
+ const K=[[f1(gf/n),'Goles marcados/partido'],[f1(gc/n),'Goles recibidos/partido'],[f1(pts/n),'Puntos/partido'],[Math.round(w/n*100)+'%','Victorias'],[pl.filter(x=>x.gc==0).length,'Porterías a cero'],[pl.filter(x=>x.gf>=5).length,'Partidos con 5+ goles'],[Math.round(pts/n*tot),`Proyección pts (${tot} part.)`],[f1(lg),'Media liga (gol/equipo/part.)']];
+ const loc=l=>{const a=pl.filter(x=>x.loc==l),g=a.filter(x=>x.r=='G').length,e=a.filter(x=>x.r=='E').length;return `<tr><td>${l}<td>${a.length}<td>${g}<td>${e}<td>${a.length-g-e}<td>${S(a.map(x=>x.gf))}<td>${S(a.map(x=>x.gc))}</tr>`};
+ const big=[...pl].sort((a,b)=>(b.gf-b.gc)-(a.gf-a.gc)),hi=[...pl].sort((a,b)=>(b.gf+b.gc)-(a.gf+a.gc));
+ const rk=(f,asc)=>{const a=T.filter(t=>t.pj).map(t=>({n:t.n,v:f(t)})).sort((x,y)=>asc?x.v-y.v:y.v-x.v),m=Math.max(...a.map(x=>x.v),1);return a.map(x=>`<div class=row><span class=t style="${me(x.n)?'font-weight:700':''}">${x.n}</span><div style="flex:1">${bar(x.v,m,me(x.n)?'y':'f')}</div><b>${f1(x.v)}</b></div>`).join('')};
+ return `<div class=kpis>${K.map(([a,b])=>`<div class=kpi><b>${a}</b><span>${b}</span></div>`).join('')}</div>
+<div class=card><h2>Goles por partido <small>(verde a favor · rojo en contra)</small></h2>${pl.map(x=>`<div class=row><span style="width:105px;font-size:12px">J${x.j} ${x.rv.slice(0,12)}</span><div style="flex:1">${bar(x.gf,mx,'f')}<div style="height:3px"></div>${bar(x.gc,mx,'c')}</div><b>${x.gf}-${x.gc}</b></div>`).join('')}</div>
+<div class=card><h2>Casa vs fuera</h2><table><tr><th><th>Loc.<th>PJ<th>G<th>E<th>P<th>GF<th>GC</tr>${loc('Casa')}${loc('Fuera')}</table></div>
+<div class=card><h2>Récords</h2>Mayor victoria: <b>${big[0].rv} ${big[0].gf}-${big[0].gc}</b><br>Mayor derrota: <b>${big.at(-1).gf<big.at(-1).gc?big.at(-1).rv+' '+big.at(-1).gf+'-'+big.at(-1).gc:'—'}</b><br>Partido con más goles: <b>${hi[0].rv} (${hi[0].gf+hi[0].gc})</b></div>
+<div class=card><h2>Ataque de la liga (goles/partido)</h2>${rk(t=>t.gf/t.pj)}</div>
+<div class=card><h2>Defensa de la liga (goles recibidos/partido, menos es mejor)</h2>${rk(t=>t.gc/t.pj,true)}</div>`}
+const cap=s=>s.toLowerCase().replace(/(^|[\s-])\S/g,c=>c.toUpperCase());
+const FULLNAMES=false; // true = nombre y apellidos completos; false = "Nombre A."
+const pn=s=>{let f,l;if(s.includes(',')){[l,f]=s.split(',').map(x=>x.trim())}else{[f,...l]=s.split(' ');l=l.join(' ')}return FULLNAMES?cap(f+' '+l):cap(f)+(l?' '+l[0].toUpperCase()+'.':'')};
+const TR=[[1,15,"1' - 15'"],[16,30,"16' - 30'"],[31,45,"31' - 45'"],[46,60,"46' - 60'"],[61,99,"61'+"]];
+function vGol(){const all=mine().filter(x=>x.pl),my=all.filter(x=>A[x.j]),er=A._err?Object.entries(A._err).map(([j,e])=>'J'+j+': '+e).join(' · '):'',warn=my.length<all.length?`<div class=card style="background:#ffe4e1"><b>⚠ Solo hay ${my.length} de ${all.length} actas.</b><br>${AL?'La FCF no ha devuelto el resto'+(er?' ('+er+')':'')+'.':'No se ha podido conectar con la función de actas: se muestra una copia con un solo partido.'}</div>`:'';if(!my.length)return'<div class=card>Aún no hay actas cargadas</div>';
+ const G=[],pj={};
+ my.forEach(x=>{const a=A[x.j],tm=Object.keys(a.lu).find(k=>me(k));(a.lu[tm]||[]).forEach(p=>{const n=pn(p.n);pj[n]=(pj[n]||0)+1});
+  a.goals.forEach((g,i)=>{const us=(g.t==='h')===x.home;G.push({j:x.j,i,min:Math.max(1,g.min),us,k:g.k,n:g.k==='O'?null:pn(g.n)})})});
+ const us=G.filter(g=>g.us),th=G.filter(g=>!g.us),sc={};
+ us.filter(g=>g.k!=='O').forEach(g=>{const o=sc[g.n]??={g:0,m:{}};o.g++;o.m[g.j]=(o.m[g.j]||0)+1});
+ const rows=[...new Set([...Object.keys(pj),...Object.keys(sc)])].map(n=>{const m=Object.values(sc[n]?.m||{});return{n,pj:pj[n]||0,g:sc[n]?.g||0,dbl:m.filter(v=>v==2).length,hat:m.filter(v=>v>=3).length}}).sort((a,b)=>b.g-a.g||b.pj-a.pj);
+ const tc=g=>TR.findIndex(([a,b])=>g.min>=a&&g.min<=b),F=TR.map(()=>0),C=TR.map(()=>0);
+ us.forEach(g=>F[tc(g)]++);th.forEach(g=>C[tc(g)]++);
+ const last=F[4]+C[4]?5:4,idx=[...Array(last).keys()],pick=(a,f)=>idx.reduce((b,i)=>f(a[i],a[b])?i:b,0);
+ const bf=pick(F,(x,y)=>x>y),wf=pick(F,(x,y)=>x<y),bc=pick(C,(x,y)=>x>y);
+ const first=my.filter(x=>{const g=G.find(z=>z.j==x.j&&z.i==0);return g&&g.us}).length;
+ const mx=Math.max(...F.slice(0,last),...C.slice(0,last),1),top=rows[0],mn=us.length?Math.round(S(us.map(g=>g.min))/us.length):0;
+ const K=[[top.n+' ('+top.g+')','Máximo goleador'],[rows.filter(r=>r.g).length,'Jugadores que han marcado'],[TR[bf][2],'Tramo donde más marcamos'],[TR[wf][2],'Tramo donde menos marcamos'],[TR[bc][2],'Tramo donde más recibimos'],[first+'/'+my.length,'Marcamos primero'],["min "+mn,'Minuto medio de nuestros goles'],[us.filter(g=>g.k==='P').length,'Goles de penalti']];
+ return warn+`<div class=kpis>${K.map(([a,b])=>`<div class=kpi><b style="font-size:${String(a).length>9?16:24}px">${a}</b><span>${b}</span></div>`).join('')}</div>
+<div class=card><h2>Goles por tramo de partido <small>(verde a favor · rojo en contra)</small></h2>${idx.map(i=>`<div class=row><span style="width:80px;font-size:12px">${TR[i][2]}</span><div style="flex:1">${bar(F[i],mx,'f')}<div style="height:3px"></div>${bar(C[i],mx,'c')}</div><b>${F[i]} - ${C[i]}</b></div>`).join('')}</div>
+<div class=card style="overflow-x:auto"><h2>Goleadores</h2><table><tr><th>#<th>Jugador<th>Goles<th>PJ<th>G/PJ<th>Dobletes<th>Hat-trick</tr>${rows.map((r,i)=>`<tr><td>${i==0&&r.g?'🥇':i+1}<td>${r.n}<td><b>${r.g}</b><td>${r.pj}<td>${r.pj?f1(r.g/r.pj):'-'}<td>${r.dbl||'-'}<td>${r.hat||'-'}</tr>`).join('')}</table>
+<small>PJ = jugadores que figuran en el acta (titulares y suplentes). Datos de ${my.length} de ${all.length} partidos jugados.</small></div>`}
+function vCal(){const my=mine(),nx=nextM(my);if(CM==null){const b=nx?nx.dt:new Date();CM=b.getFullYear()*12+b.getMonth()}
+ const y=Math.floor(CM/12),mo=CM%12,off=(new Date(y,mo,1).getDay()+6)%7,nd=new Date(y,mo+1,0).getDate(),inM=my.filter(x=>x.dt.getFullYear()==y&&x.dt.getMonth()==mo);
+ let c='';for(let i=0;i<off;i++)c+='<div></div>';
+ for(let d=1;d<=nd;d++){const x=inM.find(z=>z.dt.getDate()==d);c+=`<div class="day ${x?x.ret?'ret':x.pl?x.r:'next':''} ${x&&x===nx?'nx':''}"><b>${d}</b>${x?`<span>${x.home?'C':'F'} ${x.pl?x.gf+'-'+x.gc:x.ret?'—':hh(x)}</span><em>${x.rv.slice(0,9)}</em>`:''}</div>`}
+ const up=my.filter(x=>!x.pl&&!x.ret&&x.dt>=new Date(new Date().setHours(0,0,0,0)));
+ const lst=a=>a.map(x=>`<div class=row><span class="chip ${x.r||'E'}" style="${x.r?'':'background:#999'}">J${x.j}</span><span class=t><b>${x.dt.toLocaleDateString('es',{weekday:'short',day:'numeric',month:'short'})}</b> · ${x.loc} · ${x.rv}${x.post?'<span class=tag>APLAZADO</span>':''}<br><small style="text-align:left;padding:0">${x.ret?'Equipo retirado':x.pl?'':hh(x)+'h · '+x.c}</small></span>${x.pl?`<b>${x.gf} - ${x.gc}</b>`:`<a href="https://www.google.com/maps?q=${x.lat},${x.lon}" target=_blank>📍</a>`}</div>`).join('')||'—';
+ return `<div class=card><div class=mh><button onclick="CM--;render()">‹</button><h2 style="margin:0;text-transform:capitalize">${new Date(y,mo,1).toLocaleDateString('es',{month:'long',year:'numeric'})}</h2><button onclick="CM++;render()">›</button></div>
+<div class=cal>${'LMXJVSD'.split('').map(d=>`<div class=hd>${d}</div>`).join('')}${c}</div>
+<small style="display:block;margin-top:8px">C = casa · F = fuera · <span class=chip style="background:var(--y);color:#000">próximo</span><span class="chip G">victoria</span><span class="chip E">empate</span><span class="chip P">derrota</span></small></div>
+<div class=card><h2>Este mes</h2>${lst(inM)}</div><div class=card><h2>Próximos partidos</h2>${lst(up)}</div>`}
+const V=[vResumen,vClas,vRes,vStats,vGol,vCal];
+function render(){$n=document.getElementById('nav');$n.innerHTML=TABS.map((t,i)=>`<button class="${i==TAB?'on':''}" onclick="TAB=${i};render();scrollTo(0,0)">${t}</button>`).join('');document.getElementById('app').innerHTML=V[TAB]()}
+(async()=>{let d,live=1;try{const r=await fetch('/.netlify/functions/fcf');if(!r.ok)throw 0;d=await r.json();if(!d.partidos)throw 0}catch{live=0;d=await(await fetch('data.json')).json()}
+ parse(d);try{const r=await fetch('/.netlify/functions/actas');if(!r.ok)throw 0;A=await r.json();AL=1}catch{try{A=await(await fetch('actas.json')).json()}catch{}}render();document.getElementById('foot').textContent=live?'Datos en directo de la FCF · se actualizan solos':'Copia de datos del '+(d.snap||'—')+' (no se pudo conectar con la FCF)'})();
+</script></body></html>
