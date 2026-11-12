@@ -1,0 +1,47 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Actualizar · CD Riudoms</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:760px;margin:auto;padding:14px;background:#fffbea;color:#141414}h1{background:#FFD21F;padding:12px;border-radius:10px;font-size:20px}.c{background:#fff;border-radius:12px;padding:14px;margin:14px 0;box-shadow:0 1px 4px #0002}textarea{width:100%;height:110px}select,input{font-size:16px;padding:6px;margin:2px}input.mn{width:70px}.r{padding:4px 0;border-bottom:1px solid #eee}button{background:#141414;color:#FFD21F;border:0;border-radius:8px;padding:9px 14px;font-size:15px;margin:4px 0}#out button{display:block}.ok{color:#1f9d55;font-weight:700}</style></head><body>
+<h1>Actualizar datos del CD Riudoms</h1>
+<div class="c"><b>1 · Resultados nuevos de la liga.</b> Abre <a href="https://www.fcf.cat/api/competition/partidos?grupId=58162176" target="_blank">este enlace</a> (sale un texto largo con llaves), pulsa Ctrl+A, Ctrl+C y pégalo aquí:<br><textarea id="j" oninput="paste()"></textarea><small id="pm"></small></div>
+<div class="c"><b>2 · Plantilla.</b> Un jugador por línea: dorsal, espacio y nombre (por ejemplo <i>12 Mateu Boquera</i>). En la web saldrá solo como “Mateu B.”.<br><textarea id="pl" onchange="show()"></textarea></div>
+<div class="c"><b>3 · Goles de un partido.</b><br><select id="m" onchange="show()"></select><div id="form"></div><p id="sv"></p></div>
+<div class="c"><b>4 · Guardar.</b> Contraseña: <input type="password" id="pw"> <button onclick="save()">💾 Guardar en la web</button><p id="sm"></p><details><summary>Copia de seguridad (opcional)</summary><button onclick="gen()">Preparar archivos</button><div id="out"></div></details></div>
+<script>
+const $=id=>document.getElementById(id),TY=[['N','Normal'],['P','Penalti'],['O','En propia puerta']];
+const keep=['JORNADA','FECHA_JORNADA','NOMBRE_CASA','NOMBRE_FUERA','GOLES_CASA','GOLES_FUERA','ESTADO','COMIENZO1','CAMPO','LATITUD','LONGITUD','RETIRADO_CASA','RETIRADO_FUERA'];
+let A={},D=null,R=[];
+const isMe=s=>/RIUDOMS/.test(s);
+const trim=s=>({snap:new Date().toLocaleDateString('es'),partidos:Object.fromEntries(Object.entries(s.partidos).map(([j,v])=>[j,v.map(m=>Object.fromEntries(keep.map(k=>[k,m[k]])))]))});
+const mine=()=>D?Object.values(D.partidos).flat().filter(m=>isMe(m.NOMBRE_CASA+m.NOMBRE_FUERA)&&m.ESTADO==='1'&&m.GOLES_CASA!=null&&m.GOLES_CASA!=='').sort((a,b)=>a.JORNADA-b.JORNADA):[];
+function roster(){R=$('pl').value.split('\n').map(l=>/^\s*(\d+)\s+(.+?)\s*$/.exec(l)).filter(Boolean).map(m=>({d:+m[1],n:m[2]}));return R}
+const opt=(v,t,sel)=>`<option value="${v}" ${v==sel?'selected':''}>${t}</option>`,ty=k=>TY.map(([v,t])=>opt(v,t,k)).join('');
+const X=`<button type="button" onclick="this.parentNode.remove()">✕</button>`;
+const rowF=g=>`<div class="r"><select class="pj">${R.map(p=>opt(p.n,p.d+' · '+p.n,g.n)).join('')}</select> min <input class="mn" type="number" min="1" max="99" value="${g.min||''}"> <select class="ty">${ty(g.k)}</select> ${X}</div>`;
+const rowC=g=>`<div class="r">Gol del rival · min <input class="mn" type="number" min="1" max="99" value="${g.min||''}"> <select class="ty">${ty(g.k)}</select> ${X}</div>`;
+function fillSel(){const cur=$('m').value;$('m').innerHTML=mine().map(m=>opt(+m.JORNADA,`J${+m.JORNADA} · ${m.NOMBRE_CASA} ${m.GOLES_CASA}-${m.GOLES_FUERA} ${m.NOMBRE_FUERA}${A[+m.JORNADA]?' ✔':''}`,cur)).join('');show()}
+function show(){roster();const j=+$('m').value,m=mine().find(x=>+x.JORNADA===j),f=$('form');if(!m){f.innerHTML='<p>No hay partidos jugados.</p>';return}
+ const home=isMe(m.NOMBRE_CASA),a=A[j],tm=a&&Object.keys(a.lu||{}).find(isMe),gs=a?a.goals:[],fav=gs.filter(g=>(g.t==='h')===home),con=gs.filter(g=>(g.t==='h')!==home),cv=tm?a.lu[tm].map(p=>p.n):R.map(p=>p.n);
+ f.innerHTML=`<p><b>${m.NOMBRE_CASA} ${m.GOLES_CASA} - ${m.GOLES_FUERA} ${m.NOMBRE_FUERA}</b></p><p>Jugadores que han jugado:</p>${R.map((p,i)=>`<label style="display:block"><input type="checkbox" class="cv" value="${i}" ${cv.includes(p.n)?'checked':''}> ${p.d} · ${p.n}</label>`).join('')}
+<p><b>Goles del Riudoms</b></p><div id="fav">${fav.map(rowF).join('')}</div><button type="button" onclick="$('fav').insertAdjacentHTML('beforeend',rowF({}))">+ Gol nuestro</button>
+<p><b>Goles del rival</b> (solo el minuto)</p><div id="con">${con.map(rowC).join('')}</div><button type="button" onclick="$('con').insertAdjacentHTML('beforeend',rowC({}))">+ Gol del rival</button>
+<p><button type="button" onclick="add()">✔ Guardar este partido</button></p>`}
+function buildActa(m,F,C,conv){const home=isMe(m.NOMBRE_CASA),all=[...F.map(g=>({...g,us:1})),...C.map(g=>({...g,us:0}))].sort((a,b)=>a.min-b.min);let sh=0,sa=0;
+ const goals=all.map(g=>{const h=g.us?home:!home;h?sh++:sa++;return{sh,sa,min:g.min,d:(R.find(p=>p.n===g.n)||{}).d||0,n:g.us&&g.k!=='O'?g.n:'',k:g.k,t:h?'h':'a'}});
+ return{j:+m.JORNADA,manual:1,lu:{[home?m.NOMBRE_CASA:m.NOMBRE_FUERA]:conv.map(p=>({d:p.d,n:p.n,s:true}))},goals}}
+function add(){const j=+$('m').value,m=mine().find(x=>+x.JORNADA===j);if(!m)return;const q=s=>[...document.querySelectorAll(s)];
+ const F=q('#fav .r').map(r=>({n:r.querySelector('.pj').value,min:+r.querySelector('.mn').value,k:r.querySelector('.ty').value})),C=q('#con .r').map(r=>({min:+r.querySelector('.mn').value,k:r.querySelector('.ty').value}));
+ if([...F,...C].some(g=>!g.min)){alert('Falta el minuto en algún gol.');return}
+ const home=isMe(m.NOMBRE_CASA),ours=+(home?m.GOLES_CASA:m.GOLES_FUERA),th=+(home?m.GOLES_FUERA:m.GOLES_CASA);
+ if((F.length!==ours||C.length!==th)&&!confirm(`Has puesto ${F.length}-${C.length}, pero el resultado oficial es ${ours}-${th}. ¿Guardar igualmente?`))return;
+ A[j]=buildActa(m,F,C,q('.cv:checked').map(c=>R[+c.value]));A._plantilla=R;$('sv').innerHTML=`<span class="ok">✔ Guardado el partido de la jornada ${j}.</span> Elige otro o pulsa “Preparar archivos” (paso 4).`;fillSel()}
+function paste(){try{const s=JSON.parse($('j').value);if(!s.partidos)throw 0;D=trim(s);$('pm').textContent='✔ Resultados leídos';fillSel()}catch{$('pm').textContent=$('j').value?'⚠ Texto no válido':''}}
+function dl(name,obj){const b=document.createElement('button');b.textContent='⬇ Descargar '+name;b.onclick=()=>{const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(obj)],{type:'application/json'}));l.download=name;l.click()};$('out').appendChild(b)}
+function gen(){$('out').innerHTML='';roster();A._plantilla=R;dl('actas.json',A);if($('j').value.trim()&&D)dl('data.json',D);
+ $('out').insertAdjacentHTML('beforeend','<p>Ahora entra en tu repositorio de GitHub → <b>Add file → Upload files</b>, arrastra los archivos descargados y pulsa <b>Commit changes</b>. En un minuto la web está al día.</p>')}
+async function save(){roster();A._plantilla=R;const pw=$('pw').value;if(!pw){$('sm').textContent='Escribe la contraseña.';return}
+ try{const r=await fetch('/api/datos',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:pw,data:D,actas:A})}),j=await r.json().catch(()=>({}));$('sm').innerHTML=r.ok?'<span class="ok">✔ Guardado. Ya lo ven todos los padres.</span>':'⚠ '+(j.error||'Error '+r.status)}catch(e){$('sm').textContent='⚠ No se pudo conectar: '+e}}
+async function init(){const st=async f=>{try{return await(await fetch(f+'?'+Date.now())).json()}catch{return null}};let s=null;try{const r=await fetch('/api/datos',{cache:'no-store'});if(r.ok)s=await r.json()}catch{}
+ D=(s&&s.data)||await st('data.json');A=(s&&s.actas)||await st('actas.json')||{};
+ if(A._plantilla)$('pl').value=A._plantilla.map(p=>p.d+' '+p.n).join('\n');else{const a=Object.values(A).find(x=>x&&x.lu),t=a&&Object.keys(a.lu).find(isMe);if(t)$('pl').value=a.lu[t].map(p=>p.d+' '+p.n).join('\n')}
+ fillSel()}
+init();
+</script></body></html>
